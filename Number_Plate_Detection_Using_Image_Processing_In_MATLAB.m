@@ -3,14 +3,14 @@ clear all; % Delete all variables.
 close all; % Close all figure windows except those created by imtool.
 imtool close all; % Close all figure windows created by imtool.
 workspace; % Make sure the workspace panel is showing.
-% Read Image
+% Read image.
 I = imread ('Red Car.jpg');
 figure(1);
 imshow(I);
-% Extract Y component (Convert an Image to Gray)
+% Extract Y component (convert image to gray).
 Igray = rgb2gray(I);
 [rows cols] = size(Igray);
-%% Dilate and Erode Image in order to remove noise
+% Dilate and erode image in order to remove noise.
 Idilate = Igray;
 for i = 1:rows
 for j = 2:cols-1
@@ -23,7 +23,7 @@ difference = 0;
 sum = 0;
 total_sum = 0;
 difference = uint32(difference);
-%% PROCESS EDGES IN HORIZONTAL DIRECTION
+% Process edges in horizontal direction.
 disp('Processing Edges Horizontally...');
 max_horz = 0;
 maximum = 0;
@@ -40,7 +40,7 @@ sum = sum + difference;
 end
 end
 horz1(i) = sum;
-% Find Peak Value
+% Find peak value in horizontal histogram.
 if(sum > maximum)
 max_horz = i;
 maximum = sum;
@@ -48,14 +48,7 @@ end
 total_sum = total_sum + sum;
 end
 average = total_sum / cols;
-% figure(5);
-% % Plot the Histogram for analysis
-% subplot(3,1,1);
-% plot (horz1);
-% title('Horizontal Edge Processing Histogram');
-% xlabel('Column Number');
-% ylabel('Difference');
-%% Smoothen the Horizontal Histogram by applying Low Pass Filter
+% Smoothen the horizontal histogram by applying Low Pass Filter.
 disp('Passing Horizontal Histogram Through Low Pass Filter...')
 sum = 0;
 horz = horz1;
@@ -66,12 +59,7 @@ sum = sum + horz1(j);
 end
 horz(i) = sum / 41;
 end
-% subplot(3,1,2);
-% plot (horz);
-% title('Histogram After Passing Through Low Pass Filter');
-% xlabel('Column Number');
-% ylabel('Difference');
-%% Filter out Horizontal Histogram Values by applying Dynamic Threshold
+% Filter out horizontal histogram values by applying Dynamic Threshold.
 disp('Filtering Out Horizontal Histogram...');
 for i = 1:cols
 if(horz(i) < average)
@@ -81,12 +69,7 @@ I(j, i) = 0;
 end
 end
 end
-% subplot(3,1,3);
-% plot (horz);
-% title('Histogram After Filtering');
-% xlabel('Column Number');
-% ylabel('Difference');
-%% PROCESS EDGES IN VERTICAL DIRECTION
+% Process edges in vertical direction.
 difference = 0;
 total_sum = 0;
 difference = uint32(difference);
@@ -95,7 +78,7 @@ maximum = 0;
 max_vert = 0;
 for i = 2:rows
 sum = 0;
-for j = 2:cols %cols
+for j = 2:cols
 if(I(i, j) > I(i, j-1))
 difference = uint32(I(i, j) - I(i, j-1));
 end
@@ -107,7 +90,7 @@ sum = sum + difference;
 end
 end
 vert1(i) = sum;
-%% Find Peak in Vertical Histogram
+% Find peak value in vertical histogram.
 if(sum > maximum)
 max_vert = i;
 maximum = sum;
@@ -115,13 +98,7 @@ end
 total_sum = total_sum + sum;
 end
 average = total_sum / rows;
-% figure(6)
-% subplot(3,1,1);
-% plot (vert1);
-% title('Vertical Edge Processing Histogram');
-% xlabel('Row Number');
-% ylabel('Difference');
-%% Smoothen the Vertical Histogram by applying Low Pass Filter
+% Smoothen the vertical histogram by applying Low Pass Filter.
 disp('Passing Vertical Histogram Through Low Pass Filter...');
 sum = 0;
 vert = vert1;
@@ -132,12 +109,7 @@ sum = sum + vert1(j);
 end
 vert(i) = sum / 41;
 end
-% subplot(3,1,2);
-% plot (vert);
-% title('Histogram After Passing Through Low Pass Filter');
-% xlabel('Row Number');
-% ylabel('Difference');
-%% Filter out Vertical Histogram Values by applying Dynamic Threshold
+% Filter out vertical histogram values by applying Dynamic Threshold.
 disp('Filtering Out Vertical Histogram...');
 for i = 1:rows
 if(vert(i) < average)
@@ -147,13 +119,7 @@ I(i, j) = 0;
 end
 end
 end
-% subplot(3,1,3);
-% plot (vert);
-% title('Histogram After Filtering');
-% xlabel('Row Number');
-% ylabel('Difference');
-% figure(7), imshow(I);
-%% Find Probable candidates for Number Plate
+% Find probable candidates for Number Plate.
 j = 1;
 for i = 2:cols-2
 if(horz(i) ~= 0 && horz(i-1) == 0 && horz(i+1) == 0)
@@ -184,13 +150,13 @@ end
 if(mod(row_size, 2))
 row(row_size+1) = rows;
 end
-%% Region of Interest Extraction
-%Check each probable candidate
+% Extract Region of Interest (ROI).
+% Check each probable candidate.
 for i = 1:2:row_size
 for j = 1:2:column_size
-% If it is not the most probable region remove it from image
+% If it is not the most probable region remove it from image.
 if(~((max_horz >= column(j) && max_horz <= column(j+1)) && (max_vert >=row(i) && max_vert <= row(i+1))))
-%This loop is only for displaying proper output to User
+% Display output to the user.
 for m = row(i):row(i+1)
 for n = column(j):column(j+1)
 I(m, n) = 0;
